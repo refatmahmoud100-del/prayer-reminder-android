@@ -17,13 +17,16 @@ object PrayerScheduler {
     val names = mapOf(Prayer.FAJR to "الفجر", Prayer.DHUHR to "الظهر", Prayer.ASR to "العصر",
         Prayer.MAGHRIB to "المغرب", Prayer.ISHA to "العشاء")
 
+    var usedFallback = true
+
     @SuppressLint("MissingPermission")
     fun coordinates(ctx: Context): Coordinates {
         try {
             val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             val loc = lm.getProviders(true).mapNotNull { lm.getLastKnownLocation(it) }.maxByOrNull { it.time }
-            if (loc != null) return Coordinates(loc.latitude, loc.longitude)
+            if (loc != null) { usedFallback = false; return Coordinates(loc.latitude, loc.longitude) }
         } catch (_: Exception) {}
+        usedFallback = true
         return Coordinates(DEF_LAT, DEF_LON)
     }
 
@@ -36,6 +39,24 @@ object PrayerScheduler {
         val t = timesFor(ctx, Date())
         return listOf(Prayer.FAJR to t.fajr, Prayer.DHUHR to t.dhuhr, Prayer.ASR to t.asr,
             Prayer.MAGHRIB to t.maghrib, Prayer.ISHA to t.isha).map { names[it.first]!! to it.second }
+    }
+
+    /** Six entries for the home row: name, emoji, time. Sunrise is info only. */
+    fun row(ctx: Context): List<Triple<String, String, Date>> {
+        val t = timesFor(ctx, Date())
+        return listOf(Triple("الفجر", "🌄", t.fajr), Triple("الشروق", "🌅", t.sunrise), Triple("الظهر", "☀️", t.dhuhr),
+            Triple("العصر", "🌤️", t.asr), Triple("المغرب", "🌇", t.maghrib), Triple("العشاء", "🌙", t.isha))
+    }
+
+    fun next(ctx: Context): Pair<String, Date> {
+        val now = Date()
+        val all = (0..1).flatMap { d ->
+            val day = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, d) }.time
+            val t = timesFor(ctx, day)
+            listOf(Prayer.FAJR to t.fajr, Prayer.DHUHR to t.dhuhr, Prayer.ASR to t.asr, Prayer.MAGHRIB to t.maghrib, Prayer.ISHA to t.isha)
+        }
+        val n = all.first { it.second.after(now) }
+        return names[n.first]!! to n.second
     }
 
     /** Schedules the next upcoming prayer alarm. Called on app open, boot, and after each alarm. */
