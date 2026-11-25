@@ -1,0 +1,9 @@
+<resources>
+    <color name="navy">#0E2A47</color>
+    <color name="gold">#F2B84B</color>
+    <color name="sky_top">#12335C</color>
+    <color name="sky_mid">#2E7D9A</color>
+    <color name="sky_bottom">#F4B860</color>
+    <color name="page">#EEF3F6</color>
+    <color name="ink">#14263A</color>
+</resources>
