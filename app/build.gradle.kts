@@ -4,7 +4,7 @@ android {
     compileSdk = 34
     defaultConfig {
         applicationId = "app.salah.reminder"   // change before publishing; cannot change after
-        minSdk = 24; targetSdk = 34
+        minSdk = 26; targetSdk = 34
         versionCode = 1; versionName = "0.1"
     }
     buildTypes { release { isMinifyEnabled = false } }
